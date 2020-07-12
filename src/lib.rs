@@ -1,9 +1,9 @@
 //! Simple complex numbers library written for educational purposes.
 //! Instead of using generic types, this library is made to be used
-//! only with f64 primitives.
+//! only with f64 primitives in a seamless manner.
 use std::ops::{Add, Sub, Mul};
 use std::cmp::PartialEq;
-use std::f64::consts::PI;
+//use std::f64::consts::PI;
 
 
 /// A complex number in Cartesian form.
@@ -43,7 +43,7 @@ impl ComplexNumber {
     }*/
 }
 
-impl Add for ComplexNumber {
+impl Add<Self> for ComplexNumber {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -53,10 +53,8 @@ impl Add for ComplexNumber {
         }
     }
 }
-
-/// Add trait for ComplexNumber to support
-/// addition with the f64 primitive (or "real"
-/// numbers)
+/// Add traits for ComplexNumber to support
+/// addition with the f64 primitive
 impl Add<f64> for ComplexNumber {
     type Output = Self;
 
@@ -67,8 +65,18 @@ impl Add<f64> for ComplexNumber {
         }
     }
 }
+impl Add<ComplexNumber> for f64 {
+    type Output = ComplexNumber;
 
-impl Sub for ComplexNumber {
+    fn add(self, other: ComplexNumber) -> ComplexNumber {
+        ComplexNumber {
+            re: self + other.re,
+            im: other.im
+        }
+    }
+}
+
+impl Sub<Self> for ComplexNumber {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
@@ -78,8 +86,7 @@ impl Sub for ComplexNumber {
         }
     }
 }
-
-/// Add trait for ComplexNumber to support
+/// Sub trait for ComplexNumber to support
 /// subtraction with the f64 primitive
 impl Sub<f64> for ComplexNumber {
     type Output = Self;
@@ -88,6 +95,16 @@ impl Sub<f64> for ComplexNumber {
         Self {
             re: self.re - other,
             im: self.im
+        }
+    }
+}
+impl Sub<ComplexNumber> for f64 {
+    type Output = ComplexNumber;
+
+    fn sub(self, other: ComplexNumber) -> ComplexNumber {
+        ComplexNumber {
+            re: self - other.re,
+            im: (-other.im)
         }
     }
 }
@@ -118,7 +135,6 @@ impl Mul for ComplexNumber {
         }
     }
 }
-
 impl Mul<f64> for ComplexNumber {
     type Output = Self;
     /// Multiplying a complex number by a real
@@ -137,7 +153,15 @@ impl Mul<f64> for ComplexNumber {
         }
     }
 }
-
+impl Mul<ComplexNumber> for f64 {
+    type Output = ComplexNumber;
+    fn mul(self, other: ComplexNumber) -> ComplexNumber {
+        ComplexNumber {
+            re: self*other.re,
+            im: self*other.im
+        }
+    }
+}
 
 
 #[cfg(test)]
@@ -160,19 +184,30 @@ mod tests {
         let z2 = ComplexNumber { re: 1f64, im: -1f64 };
         let z3 = z1 + z2;
         assert_eq!(z3, ComplexNumber { re: 1f64, im: 0f64 }); 
-        assert!(z1 - z2 == ComplexNumber { re: -1f64, im: 2f64 })
+        assert_eq!(z1 - z2, ComplexNumber { re: -1f64, im: 2f64 })
     }
 
     #[test]
-    fn test_sum_traits() {
+    fn test_add_traits() {
         let z = ComplexNumber::i();
-        dbg!(z.re);
-        dbg!(z.im);
         assert!(z.re == 0.0f64);
         assert!(z.im == 1.0f64);
         let sum = z + 3f64;
-        dbg!(sum);
-        assert!(sum == ComplexNumber { re:3.0f64, im:1.0f64 })
+        assert_eq!(sum, ComplexNumber { re:3.0f64, im:1.0f64 });
+        assert_eq!(z + 3f64, 3f64 + z);
+        let z2 = ComplexNumber::i() + 3.0f64;
+        assert_eq!(z2.re, 3.0f64);
+    }
+
+    #[test]
+    fn test_sub_traits() {
+        let z = ComplexNumber::i();
+        assert_eq!(z - 3f64, ComplexNumber { re:-3.0f64, im:1.0f64 });
+        assert_eq!(3f64 - z, ComplexNumber { re: 3f64, im:-1.0f64 });
+        let z1 = ComplexNumber { re: 4f64, im: 2f64 };
+        let z2 = ComplexNumber { re: 2f64, im: -2f64 };
+        assert_eq!(z1 - z2, ComplexNumber { re: 2f64, im: 4f64 });
+        assert_eq!(z2 - z1, ComplexNumber { re: -2f64, im: -4f64 })
     }
 
     #[test]
