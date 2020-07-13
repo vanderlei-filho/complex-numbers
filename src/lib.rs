@@ -1,9 +1,9 @@
 //! Simple complex numbers library written for educational purposes.
 //! Instead of using generic types, this library is made to be used
 //! only with f64 primitives in a seamless manner.
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Sub, Mul, Div};
 use std::cmp::PartialEq;
-//use std::f64::consts::PI;
+use std::f64::consts::PI;
 
 
 /// A complex number in Cartesian form.
@@ -16,26 +16,39 @@ pub struct ComplexNumber {
 }
 
 impl ComplexNumber {
+
     /// Returns the argument of a complex number
     /// in radians. The atan2() function is used
     /// to handle results based on quadrants
     fn argument(&self) -> f64 {
-        self.im.atan2(self.re)
+        self.im.atan2(self.re) 
     }
+
     /// Returns the magnitude of a complex number
     fn magnitude(&self) -> f64 {
         //(self.re.powf(2f64) + self.im.powf(2f64)).sqrt()
         self.re.hypot(self.im)
     }
+
     /// Returns a ComplexNumber struct representing
-    /// the conjugate complex of the input argument.
+    /// the conjugate complex of the input argument
     fn conjugate(&self) -> ComplexNumber {
         ComplexNumber {re: self.re, im: -self.im,}
     }
+
     /// Returns a ComplexNumber struct representing 
-    /// the imaginary number "i"
+    /// the imaginary unit number "i"
     fn i() -> ComplexNumber {
         ComplexNumber {re: 0f64, im: 1f64}
+    }
+
+    /// Checks if the ComplexNumber is zero
+    fn is_zero(&self) -> bool {
+        if self.re == 0f64 && self.im == 0f64 {
+            true
+        } else {
+            false
+        }
     }
     // Converts self into a PolarComplex struct
     /*fn to_polar(&self) -> PolarComplex {
@@ -46,32 +59,34 @@ impl ComplexNumber {
 impl Add<Self> for ComplexNumber {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
+    fn add(self, rhs: Self) -> Self {
         Self {
-            re: self.re + other.re,
-            im: self.im + other.im,
+            re: self.re + rhs.re,
+            im: self.im + rhs.im,
         }
     }
 }
+
 /// Add traits for ComplexNumber to support
 /// addition with the f64 primitive
 impl Add<f64> for ComplexNumber {
     type Output = Self;
 
-    fn add(self, other: f64) -> Self {
+    fn add(self, rhs: f64) -> Self {
         Self {
-            re: self.re + other,
+            re: self.re + rhs,
             im: self.im
         }
     }
 }
+
 impl Add<ComplexNumber> for f64 {
     type Output = ComplexNumber;
 
-    fn add(self, other: ComplexNumber) -> ComplexNumber {
+    fn add(self, rhs: ComplexNumber) -> ComplexNumber {
         ComplexNumber {
-            re: self + other.re,
-            im: other.im
+            re: self + rhs.re,
+            im: rhs.im
         }
     }
 }
@@ -79,43 +94,57 @@ impl Add<ComplexNumber> for f64 {
 impl Sub<Self> for ComplexNumber {
     type Output = Self;
 
-    fn sub(self, other: Self) -> Self {
+    fn sub(self, rhs: Self) -> Self {
         Self {
-            re: self.re - other.re,
-            im: self.im - other.im,
+            re: self.re - rhs.re,
+            im: self.im - rhs.im,
         }
     }
 }
+
 /// Sub trait for ComplexNumber to support
 /// subtraction with the f64 primitive
 impl Sub<f64> for ComplexNumber {
     type Output = Self;
 
-    fn sub(self, other: f64) -> Self {
+    fn sub(self, rhs: f64) -> Self {
         Self {
-            re: self.re - other,
+            re: self.re - rhs,
             im: self.im
         }
     }
 }
+
 impl Sub<ComplexNumber> for f64 {
     type Output = ComplexNumber;
 
-    fn sub(self, other: ComplexNumber) -> ComplexNumber {
+    fn sub(self, rhs: ComplexNumber) -> ComplexNumber {
         ComplexNumber {
-            re: self - other.re,
-            im: (-other.im)
+            re: self - rhs.re,
+            im: (-rhs.im)
         }
     }
 }
 
-/// A complex number is equal to another complex
+/// A complex number is equal to anrhs complex
 /// number if and only if their real and imaginary
 /// parts are equal
-impl PartialEq for ComplexNumber {
-    fn eq(&self, other: &Self) -> bool {
-        self.re == other.re && 
-        self.im == other.im
+impl PartialEq<Self> for ComplexNumber {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.re == rhs.re && 
+        self.im == rhs.im
+    }
+}
+
+impl PartialEq<ComplexNumber> for f64 {
+    fn eq(&self, rhs: &ComplexNumber) -> bool {
+        self == &rhs.re && rhs.im == 0f64
+    }
+}
+
+impl PartialEq<f64> for ComplexNumber {
+    fn eq(&self, rhs: &f64) -> bool {
+        &self.re == rhs && self.im == 0f64
     }
 }
 
@@ -128,13 +157,14 @@ impl Mul for ComplexNumber {
     ///       = a*c + i*a*d + i*b*c + (i^2)*b*d
     ///       = a*c + i*(a*d+b*c) - b*d
     ///       = (a*c-b*d) + i*(a*d+b*c)
-    fn mul(self, other: Self) -> Self {
+    fn mul(self, rhs: Self) -> Self {
         Self {
-            re: self.re*other.re - self.im*other.im,
-            im: self.re*other.im + self.im*other.re
+            re: self.re*rhs.re - self.im*rhs.im,
+            im: self.re*rhs.im + self.im*rhs.re
         }
     }
 }
+
 impl Mul<f64> for ComplexNumber {
     type Output = Self;
     /// Multiplying a complex number by a real
@@ -146,22 +176,61 @@ impl Mul<f64> for ComplexNumber {
     /// z1 = a + i*b; r1 = c;
     /// z1*r1 = c*(a+i*b)
     ///       = (c*a) + i*(c*b)
-    fn mul(self, other: f64) -> Self {
+    fn mul(self, rhs: f64) -> Self {
         Self {
-            re: self.re*other,
-            im: self.im*other
+            re: self.re*rhs,
+            im: self.im*rhs
         }
     }
 }
+
 impl Mul<ComplexNumber> for f64 {
     type Output = ComplexNumber;
-    fn mul(self, other: ComplexNumber) -> ComplexNumber {
+    fn mul(self, rhs: ComplexNumber) -> ComplexNumber {
         ComplexNumber {
-            re: self*other.re,
-            im: self*other.im
+            re: self*rhs.re,
+            im: self*rhs.im
         }
     }
 }
+
+impl Div<Self> for ComplexNumber {
+    type Output = Self;
+    /// The division operation between complex numbers
+    /// is implemented based on the following derived
+    /// formula: w = u + vi; z = x + yi;
+    /// => w/y = (1/(x^2+y^2)) * ((ux + vy) + (vx - uy)i)
+    /// See: https://en.wikipedia.org/wiki/Complex_number#Reciprocal_and_division
+    fn div(self, rhs: Self) -> Self {
+        let norm_sqr = 1f64/(rhs.re.powf(2f64)+rhs.im.powf(2f64));
+        Self {
+            re: norm_sqr*(self.re*rhs.re + self.im*rhs.im),
+            im: norm_sqr*(self.im*rhs.re - self.re*rhs.im)
+        }
+    }
+}
+
+impl Div<f64> for ComplexNumber {
+    type Output = Self;
+    fn div(self, rhs: f64) -> Self {
+        Self {
+            re: self.re / rhs,
+            im: self.im / rhs
+        }
+    }
+}
+
+impl Div<ComplexNumber> for f64 {
+    type Output = ComplexNumber;
+    fn div(self, rhs: ComplexNumber) -> ComplexNumber {
+        let norm_sqr = 1f64/(rhs.re.powf(2f64)+rhs.im.powf(2f64));
+        ComplexNumber {
+            re: norm_sqr*(self*rhs.re),
+            im: norm_sqr*(-self*rhs.im)
+        }
+    }
+}
+
 
 
 #[cfg(test)]
@@ -214,8 +283,27 @@ mod tests {
     fn test_mul_traits() {
         let z1 = ComplexNumber::i();
         assert_eq!(z1*4f64, ComplexNumber { re:0.0f64, im:4.0f64 });
+        assert_eq!(4f64*z1, ComplexNumber { re:0.0f64, im:4.0f64 });
         let z2 = ComplexNumber { re: 2.0f64.sqrt(), im:-2.0f64 };
         assert_eq!(z1*z2, ComplexNumber { re: 2.0f64, im: 2.0f64.sqrt() });
-        assert_eq!(z1*z2, z2*z1)
+        assert_eq!(z1*z2, z2*z1);
+        assert_eq!(z1*z2*3f64, 3f64*z2*z1);
+        // composed arithmetic
+        assert_eq!(z1*(3f64 + 2f64), ComplexNumber { re: 0f64, im: 5f64 });
+        assert_eq!((z1+z2)*z2, ComplexNumber {re: 2.0f64.sqrt(), im: -1f64} * z2)
     }
+
+    #[test]
+    fn test_div_traits() {
+        let z1 = ComplexNumber::i();
+        assert_eq!(z1/4f64, ComplexNumber { re:0.0f64, im:0.25f64 });
+        dbg!(z1/z1);
+        assert_eq!(z1/z1, 1f64);
+        let z2 = ComplexNumber { re: 2.0f64, im: 2.0f64.sqrt() };
+        let z3 = ComplexNumber { re: 1.0f64, im: 3.0f64.sqrt() };
+        dbg!(z3/z2);
+        dbg!(4f64/z1);
+        assert!(true)
+    }
+
 }
